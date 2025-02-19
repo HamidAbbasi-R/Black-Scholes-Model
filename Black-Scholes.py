@@ -192,7 +192,7 @@ def plot_paths(paths, times=None, N_show=10):
     ), row=1, col=2)
 
     fig.update_layout(
-        title=f'N = {simulations} paths',
+        # title=f'N = {simulations} paths',
         xaxis_title='Time',
         yaxis_title='Price',
         xaxis2_title='Count',
