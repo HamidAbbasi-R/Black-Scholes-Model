@@ -36,8 +36,8 @@ The Black-Scholes model is specifically designed for European options because:
 Now, let’s explore the assumptions and step-by-step derivation of the Black-Scholes formula.
 """)
 
-# Step 1: Assumptions of the Black-Scholes Model
-st.header("Step 1: Assumptions of the Black-Scholes Model")
+# Step 0: Assumptions of the Black-Scholes Model
+st.header("Step 0: Assumptions of the Black-Scholes Model")
 st.markdown("""
 The Black-Scholes model is based on several key assumptions:
 1. The stock price follows a geometric Brownian motion.
