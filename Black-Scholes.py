@@ -1,6 +1,18 @@
 import streamlit as st
 import numpy as np
 from scipy.stats import norm
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+# Sliders for user input
+S_max = st.sidebar.slider("Stock Price (S)", min_value=1, max_value=200, value=100, step=1)
+K_max = st.sidebar.slider("Strike Price (K)", min_value=1, max_value=200, value=100, step=1)
+S = np.linspace(1, S_max, 100)
+K = np.linspace(1, K_max, 100)
+S, K = np.meshgrid(S, K)
+r = st.sidebar.slider("Risk-Free Rate % (r)", min_value=0, max_value=20, value=5, step=1) /100
+sigma = st.sidebar.slider("Volatility % (σ)", min_value=1, max_value=100, value=20, step=1) / 100
+T = st.sidebar.slider("Time to Maturity, years (T)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
 
 # Title of the Dashboard
 st.title("Interactive Black-Scholes Formula Derivation")
@@ -130,6 +142,93 @@ GBM aligns with empirical observations of stock prices:
 
 By modeling stock prices as GBM, we ensure that the mathematical framework aligns with real-world financial behavior, making it suitable for pricing derivatives like options.
 """)
+
+class StochasticProcesses:
+    def __init__(self):
+        pass
+
+    def brownian_motion(self, S0, mu, sigma, T, dt, simulations):
+        time_steps = int(T / dt)
+        times = np.linspace(0, T, time_steps)
+        paths = np.zeros((simulations, time_steps))
+        paths[:, 0] = S0
+
+        for t in range(1, time_steps):
+            Z = np.random.normal(0, 1, simulations)
+            paths[:, t] = paths[:, t-1] + mu * dt + sigma * np.sqrt(dt) * Z
+
+        return times, paths
+
+    def geometric_brownian_motion(self, S0, mu, sigma, T, dt, simulations):
+        time_steps = int(T / dt)
+        times = np.linspace(0, T, time_steps)
+        paths = np.zeros((simulations, time_steps))
+        paths[:, 0] = S0
+
+        for t in range(1, time_steps):
+            Z = np.random.normal(0, 1, simulations)
+            paths[:, t] = paths[:, t-1] * np.exp((mu - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * Z)
+
+        return times, paths
+
+
+def plot_paths(paths, times=None, N_show=10):
+    if times is None:
+        times = np.arange(paths.shape[1])
+    
+    simulations = paths.shape[0]
+    if N_show > simulations:
+        N_show = simulations
+
+    fig = make_subplots(
+    rows=1, cols=2, 
+    shared_yaxes=True, 
+    horizontal_spacing=0.02,
+    column_widths=[0.8, 0.2]
+    )
+    for i in range(min(simulations, N_show)):  # Plot only the first 10 paths for clarity
+        fig.add_trace(go.Scatter(
+        x=times, 
+        y=paths[i], 
+        mode='lines', 
+        name=f"Path {i+1}",
+        line=dict(width=0.7),
+        showlegend=False,
+        ), row=1, col=1)
+    
+    fig.add_trace(go.Histogram(
+        y=paths[:, -1],
+        marker=dict(color='gray'),
+        showlegend=False,
+        orientation='h',
+    ), row=1, col=2)
+
+    fig.update_layout(
+        title=f'N = {simulations} paths',
+        xaxis_title='Time',
+        yaxis_title='Price',
+        xaxis2_title='Count',
+        template='seaborn',
+    )
+
+    return fig
+
+# Create an instance of the StochasticProcesses class
+sp = StochasticProcesses()
+paths_st = st.slider("Number of Stock Price Paths", min_value=100, max_value=1000, value=100, step=10)
+paths_GBM = sp.geometric_brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
+paths_BM = sp.brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
+
+# short discussion 
+# Plot the stock price paths
+st.write("### Stock Price Paths: Geometric Brownian Motion")
+fig_GBM = plot_paths(paths_GBM[1], times=paths_GBM[0], N_show=50)
+st.plotly_chart(fig_GBM)
+
+st.write("### Stock Price Paths: Brownian Motion")
+fig_BM = plot_paths(paths_BM[1], times=paths_BM[0], N_show=50)
+st.plotly_chart(fig_BM)
+
 
 # Step 3: Risk-Neutral Valuation
 st.header("Step 3: Risk-Neutral Valuation")
@@ -377,23 +476,11 @@ This elegant approach combines stochastic calculus, PDE theory, and financial in
 """)
 
 # Step 6: Interactive Inputs
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 st.header("Step 6: Interact with the Black-Scholes Formula")
 st.markdown("""
 Adjust the parameters below to see how they affect the price of a European call option. The plot below shows the evolution of the option price over time.
 """)
-
-# Sliders for user input
-S_max = st.sidebar.slider("Stock Price (S)", min_value=1, max_value=200, value=100, step=1)
-K_max = st.sidebar.slider("Strike Price (K)", min_value=1, max_value=200, value=100, step=1)
-S = np.linspace(1, S_max, 100)
-K = np.linspace(1, K_max, 100)
-S, K = np.meshgrid(S, K)
-r = st.sidebar.slider("Risk-Free Rate % (r)", min_value=0, max_value=20, value=5, step=1) /100
-sigma = st.sidebar.slider("Volatility % (σ)", min_value=1, max_value=100, value=20, step=1) / 100
-T = st.sidebar.slider("Time to Maturity, years (T)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
 
 # Black-Scholes formula implementation
 def black_scholes(S, K, r, sigma, T):
@@ -566,8 +653,9 @@ Implied volatility (IV) is the volatility input to the Black-Scholes model that 
 - Higher IV indicates higher expected price swings, while lower IV suggests stability.
 - IV is a forward-looking measure, unlike historical volatility, which is based on past price movements.
 
-#### Implied Volatility Surface:
-Below, we visualize the relationship between Black-Scholes call prices, actual market call prices, and implied volatility using a 3D surface plot. Adjust the sliders to explore how changes in inputs affect implied volatility.
+#### Implied Volatility Calculator:
+Use the slider below to input the market price of a call option as a percentage of the Black-Scholes price given a historical volatility you entered on the sidebar.
+The calculator will estimate the implied volatility that matches the market price.
 """)
 
 # Function to calculate implied volatility using Newton-Raphson method
@@ -591,3 +679,23 @@ def implied_volatility(S, K, r, T, market_price, option_type='call', tol=1e-6, m
 market_price = st.slider(f"Market Call Price (as % of Black-Scholes Call Price, given a historical volatility of {sigma:.0%})", min_value=80.0, max_value=120.0, value=100.0, step=1.0) / 100
 iv = implied_volatility(S, K, r, T, market_price * bs_price)
 st.write(f"### Implied Volatility: {iv:.1%}")
+if iv > sigma:
+    st.write("""
+        The implied volatility is higher than the historical volatility.
+        Market anticipates greater price fluctuations in the future than what has been observed historically.
+        This could be due to upcoming events such as:
+        * Earnings reports.
+        * Economic data releases (e.g., inflation reports, interest rate decisions).
+        * Geopolitical risks (e.g., elections, trade tensions).
+        High IV may indicate fear or uncertainty (e.g., ahead of earnings announcements or macroeconomic events).
+    """)
+elif iv < sigma:
+    st.write("""
+        The implied volatility is lower than the historical volatility.
+        Market expects lower price swings in the future compared to historical levels.
+        This could be due to factors like:
+        * Stable economic conditions.
+        * Low market uncertainty.
+        * Lack of significant upcoming events.
+        Low IV may suggest complacency or confidence in stable prices.
+    """)
