@@ -36,18 +36,6 @@ The Black-Scholes model is specifically designed for European options because:
 Now, let’s explore the assumptions and step-by-step derivation of the Black-Scholes formula.
 """)
 
-# Step 0: Assumptions of the Black-Scholes Model
-st.header("Step 0: Assumptions of the Black-Scholes Model")
-st.markdown("""
-The Black-Scholes model is based on several key assumptions:
-1. The stock price follows a geometric Brownian motion.
-2. There are no transaction costs or taxes.
-3. The risk-free interest rate is constant.
-4. No dividends are paid during the life of the option.
-5. Markets are efficient (no arbitrage opportunities).
-6. The option can only be exercised at maturity (European option).
-""")
-
 # Step 1: Assumptions of the Black-Scholes Model
 st.header("Step 1: Assumptions of the Black-Scholes Model")
 st.markdown("""
