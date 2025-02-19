@@ -207,13 +207,18 @@ paths_st = st.slider("Number of Stock Price Paths", min_value=100, max_value=10_
 paths_GBM = sp.geometric_brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
 paths_BM = sp.brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
 
-# short discussion 
+# add short description on the graphs
+st.write("### Stock Price Paths: Geometric Brownian Motion vs Brownian Motion")
+st.markdown("""
+The plots below show simulated stock price paths using **Geometric Brownian Motion (GBM)** and **Brownian Motion**.
+You can see that for large number of paths, GBP results are log-normal distributed, while BM results are normally distributed.
+""")
 # Plot the stock price paths
-st.write("### Stock Price Paths: Geometric Brownian Motion")
+st.write("#### Geometric Brownian Motion")
 fig_GBM = plot_paths(paths_GBM[1], times=paths_GBM[0], N_show=50)
 st.plotly_chart(fig_GBM)
 
-st.write("### Stock Price Paths: Brownian Motion")
+st.write("#### Brownian Motion")
 fig_BM = plot_paths(paths_BM[1], times=paths_BM[0], N_show=50)
 st.plotly_chart(fig_BM)
 
