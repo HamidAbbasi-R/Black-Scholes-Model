@@ -201,18 +201,19 @@ def plot_paths(paths, times=None, N_show=10):
 
     return fig
 
-# Create an instance of the StochasticProcesses class
-sp = StochasticProcesses()
-paths_st = st.slider("Number of Stock Price Paths", min_value=100, max_value=10_000, value=1000, step=10)
-paths_GBM = sp.geometric_brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
-paths_BM = sp.brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
-
 # add short description on the graphs
 st.write("### Stock Price Paths: Geometric Brownian Motion vs Brownian Motion")
 st.markdown("""
 The plots below show simulated stock price paths using **Geometric Brownian Motion (GBM)** and **Brownian Motion**.
 You can see that for large number of paths, GBP results are log-normal distributed, while BM results are normally distributed.
 """)
+
+# Create an instance of the StochasticProcesses class
+sp = StochasticProcesses()
+paths_st = st.slider("Number of Stock Price Paths", min_value=100, max_value=10_000, value=1000, step=10)
+paths_GBM = sp.geometric_brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
+paths_BM = sp.brownian_motion(S0=S_max, mu=r, sigma=sigma, T=T, dt=1/252, simulations=paths_st)
+
 # Plot the stock price paths
 st.write("#### Geometric Brownian Motion")
 fig_GBM = plot_paths(paths_GBM[1], times=paths_GBM[0], N_show=50)
